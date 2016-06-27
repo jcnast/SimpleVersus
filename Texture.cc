@@ -26,6 +26,8 @@ Texture::Texture(int width, int height): width(width), height(height){
 
 	faded = false;
 
+	darkened = false;
+
 	// set the SDL elements of the texture
 	texture = NULL;
 }
@@ -102,7 +104,9 @@ void Texture::Render(int x, int y, bool flip){
 	SDL_Rect renderQuad = {x, y, width, height};
 
 	// handle any flashing events
-	if(!flashing){
+	if(darkened){
+		SDL_SetTextureColorMod(texture, defRed/2, defGreen/2, defBlue/2);
+	}else if(!flashing){
 		SDL_SetTextureColorMod(texture, defRed, defGreen, defBlue);
 	}else{
 		Flash();
@@ -154,6 +158,10 @@ void Texture::StartFade(float length){
 
 void Texture::ApplyFade(bool fade){
 	faded = fade;
+}
+
+void Texture::Darken(bool dark){
+	darkened = dark;
 }
 
 // set the renderer

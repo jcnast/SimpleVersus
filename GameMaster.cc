@@ -63,6 +63,7 @@ screenWidth(width), screenHeight(height){
 	this->background = new Texture(screenWidth, screenHeight);
 	background->SetRenderer(this->renderer);
 	background->SetImage("./Images/Background.png");
+	background->Darken(true);
 
 	// set title image
 	this->title = new Texture(400, 100);
@@ -193,6 +194,7 @@ void GameMaster::StartGame(){
 	if(inMenu){
 		inMenu = false;
 		leavingMenu = false;
+		background->Darken(false);
 	}
 }
 

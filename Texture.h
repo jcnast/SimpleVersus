@@ -37,6 +37,9 @@ class Texture{
 
 	// faded info
 	bool faded;
+
+	// darkened info
+	bool darkened;
 	
 	SDL_Renderer *renderer; // actual SDL renderer
 	SDL_Texture *texture; // actual SDL texture
@@ -53,7 +56,8 @@ public:
 
 	void StartFlash(Uint8 red, Uint8 green, Uint8 blue, float length, float interval); // start texture flash
 	void StartFade(float length); // start texture fade
-	void ApplyFade(bool fade); // darken texture
+	void ApplyFade(bool fade); // fade texture
+	void Darken(bool dark); // darken texture
 
 	int GetWidth(); // get width of image
 	int GetHeight(); // get height of image

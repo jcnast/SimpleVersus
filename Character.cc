@@ -38,7 +38,7 @@ Character::Character(bool facingRight, float xPos, float yPos, float xVelo, floa
 	jumping = false;
 	jumpMaxSpeed = 325;
 
-	moveAccel = 300;
+	moveAccel = 600;
 	moveSpeed = 250;
 
 	collisionOffset = 10;
@@ -63,7 +63,7 @@ Character::Character(bool facingRight, float xPos, float yPos, float xVelo, floa
 	rightXOffset = 35;
 	sprite->SetRenderer(game->GetRenderer());
 	sprite->SetImage("./Images/Character.png");
-	sprite->ApplyFade(true);
+	sprite->Darken(true);
 }
 
 Character::~Character(){
@@ -140,7 +140,7 @@ void Character::Reset(bool activeStatus){
 	immune = false;
 
 
-	sprite->ApplyFade(!activeStatus);
+	sprite->Darken(!activeStatus);
 }
 
 // set the character to be considered 'in the air'
@@ -309,10 +309,10 @@ void Character::MenuUpdate(float deltaTime){
 			game->RequestStartGame();
 		}else if(endCharging){
 			if(!active){
-				sprite->ApplyFade(false);
+				sprite->Darken(false);
 				active = true;
 			}else{
-				sprite->ApplyFade(true);
+				sprite->Darken(true);
 				active = false;
 			}
 		}
