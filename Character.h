@@ -47,12 +47,12 @@ class Character: public Rectangle{
 	float deathStart; // when the death animation started
 	float deathLength; // how long the death animation lasts
 
-	bool jumping; // character is still apply jump
-	float jumpMaxSpeed; // = 100
+	bool jumping; // character is still applying jump
+	float jumpMaxSpeed;
 	float jumpChargeLength;
 
 	float moveAccel;
-	float moveSpeed; // = 10;
+	float moveSpeed;
 
 	bool facingRight; // direction character is facing
 	float collisionOffset; // how close to a given edge the collision must be (# pixels)
@@ -60,6 +60,7 @@ class Character: public Rectangle{
 	bool inAir; // is the character in the air
 	bool onLeftWall; // character hitting left wall
 	bool onRightWall; // character hitting right wall
+	bool usedWallJump;
 
 	bool charging; // if a charge is in progress
 	bool chargeReset; // if the button was released from the last charge
@@ -73,7 +74,7 @@ class Character: public Rectangle{
 
 // bullet info
 	float bulletDamage;// = 10;
-	float bulletSpeed;// = 50;
+	float bulletSpeed;
 
 public: // public methods
 	Character(bool facingRight, float xPos, float yPos, float xVelo, float yVelo); // constructor

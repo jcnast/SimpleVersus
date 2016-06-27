@@ -6,7 +6,7 @@
 #include <cmath>
 
 const float Object::gravity = -500;
-const float Object::maxSpeed = 400;
+const float Object::maxSpeed = 600;
 
 // create object by setting position, gravity and damping coefficient
 Object::Object(float xPos, float yPos, float xVelo, float yVelo, float mass, float dampCo):\
@@ -22,7 +22,10 @@ Object::~Object(){
 // update object position according to physics
 void Object::PhysicsUpdate(float deltaTime){
 	ApplyAcceleration(0, gravity, deltaTime);
-	xPos += (xVelo*deltaTime);
+	// only move if the velocity would move them over 1 pixel
+	if(xVelo*deltaTime <= -1 || xVelo*deltaTime >= 1){
+		xPos += (xVelo*deltaTime);
+	}
 	yPos -= (yVelo*deltaTime); // - because of SDL weird y-axis
 }
 

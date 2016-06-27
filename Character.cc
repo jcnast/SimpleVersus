@@ -46,6 +46,7 @@ Character::Character(bool facingRight, float xPos, float yPos, float xVelo, floa
 	inAir = true;
 	onRightWall = false;
 	onLeftWall = false;
+	usedWallJump = false;
 
 	charging = false;
 	chargeReset = true;
@@ -234,6 +235,7 @@ void Character::OnCollision(Ground *ground, Collision *coll){
 	// character has landed
 	if(inAir && collY <= (int)(GetBottom()) && collY > (int)(GetBottom() - collisionOffset)){
 		inAir = false;
+		usedWallJump = false;
 
 		// spawn particles
 		ParticleSystem *landParticles = new ParticleSystem(205, 65, 110, 30, 25, 0, 0.5, 0.2, coll->GetXPos(), coll->GetYPos(), -50, 50, 100, 50, 5, 2, true, 20, 0.5);
@@ -399,14 +401,22 @@ void Character::Update(float deltaTime){
 			// if they are jumping, they stop jumping
 			if(jumping){
 				jumping = false;
-			}else{
-				if(chargeReset){
-					// otherwise, they shoot
-					Shoot();
-				}
+			}else if(chargeReset){
+				// otherwise, they shoot
+				Shoot();
+			}
+		}else if(inAir && charging && !usedWallJump && !jumping){
+			if(onRightWall && xVelo >= 0){
+				Jump(deltaTime);
+				usedWallJump = true;
+				jumping = true;
+			}else if(onLeftWall && xVelo <= 0){
+				Jump(deltaTime);
+				usedWallJump = true;
+				jumping = true;
 			}
 		// character is not in the air, and releases the button, or they are in the air and the button is down in the air while they are jumping
-		}else if((!inAir && charging) || (inAir && jumping && charging)){
+		}else if((!inAir && charging && !jumping) || (inAir && jumping && charging)){
 			// then they continue to jump
 			jumpChargeLength = (SDL_GetTicks() - chargeStart)/1000;
 			if(jumpChargeLength < maxChargeLength){
@@ -458,6 +468,11 @@ void Character::Update(float deltaTime){
 			if(onRightWall){
 				// do not move further into wall
 				xVelo = 0;
+				// holding on to wall slows decent
+				if(inAir && yVelo <= 0){
+					// ApplyAcceleration(0, -1*gravity*0.95, deltaTime);
+					SetVelocity(0, -25);
+				}
 			}else if(onLeftWall){
 				// moving away from wall
 				onLeftWall = false;
@@ -469,6 +484,11 @@ void Character::Update(float deltaTime){
 			if(onLeftWall){
 				// do not move further into wall
 				xVelo = 0;
+				// holding on to wall slows decent
+				if(inAir && yVelo <= 0){
+					// ApplyAcceleration(0, -1*gravity*0.95, deltaTime);
+					SetVelocity(0, -25);
+				}
 			}else if(onRightWall){
 				// moving away from wall
 				onRightWall = false;
@@ -477,9 +497,19 @@ void Character::Update(float deltaTime){
 			if(onRightWall && xDir == 1){
 				// do not move further into wall
 				xVelo = 0;
+				// holding on to wall slows decent
+				if(inAir && yVelo <= 0){
+					// ApplyAcceleration(0, -1*gravity*0.95, deltaTime);
+					SetVelocity(0, -25);
+				}
 			}else if(onLeftWall && xDir == -1){
 				// do not move further into wall
 				xVelo = 0;
+				// holding on to wall slows decent
+				if(inAir && yVelo <= 0){
+					// ApplyAcceleration(0, -1*gravity*0.95, deltaTime);
+					SetVelocity(0, -25);
+				}
 			}else{
 				onRightWall = false;
 				onLeftWall = false;
@@ -534,7 +564,7 @@ void Character::Jump(float deltaTime){
 	AudioMaster::PlaySound("./Sounds/CharacterJump.wav", 30);
 
 	// spawn particles
-	ParticleSystem *jumpParticles = new ParticleSystem(205, 65, 110, 30, 25, 0, 0.5, 0.2, GetCenterX(), GetBottom(), -50, 50, 100, 50, 5, 2, true, 20, 0.5);
+	ParticleSystem *jumpParticles = new ParticleSystem(255, 190, 255, 190, 255, 190, 0.5, 0.2, GetCenterX(), GetBottom(), -50, 50, 0, -25, 5, 2, true, 20, 0.5);
 	game->AddParticleSystem(jumpParticles);
 }
 

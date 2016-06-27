@@ -335,7 +335,10 @@ void GameMaster::RemoveParticleSystem(ParticleSystem *delParticleSystem){
 
 // queue up objects to be deleted at the end of the current game loop
 void GameMaster::QueueDelete(Object *delObj){
-	delObjects.push_back(delObj);
+	std::vector<Object *>::iterator pos = std::find(delObjects.begin(), delObjects.end(), delObj);
+	if(pos == delObjects.end()){
+		delObjects.push_back(delObj);
+	}
 }
 
 void GameMaster::QueueDelete(Character *delCharacter){
