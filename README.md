@@ -1,5 +1,5 @@
 # SimpleVersus
-A hand-made c++ game using SDL2
+A hand-made c++ game using SDL2 over the course of 4 weeks, without ever having used SDL before.
 
 Up to 4 players fight to be the last man left standing in a small combat arena game.
 
