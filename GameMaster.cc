@@ -185,7 +185,7 @@ void GameMaster::RequestStartGame(){
 		controls->StartFade(gameStartTime);
 
 		// sound effect
-		AudioMaster::PlaySound("./Sounds/GameStart.wav", 30);
+		AudioMaster::PlaySound("./Sounds/GameCountDown.wav", 30);
 	}
 }
 
@@ -195,6 +195,9 @@ void GameMaster::StartGame(){
 		inMenu = false;
 		leavingMenu = false;
 		background->Darken(false);
+
+		// sound effect
+		AudioMaster::PlaySound("./Sounds/GameStart.wav", 100);
 	}
 }
 
@@ -410,6 +413,18 @@ void GameMaster::PhysicsUpdate(){
 		    	(*b)->OnCollision(*c, collision);
 		    	delete collision;
 		    }
+			}
+
+			// or with another character
+			for(std::vector<Character *>::iterator oc = characters.begin(); oc != characters.end(); ++oc){
+				if((*oc) != (*c) && !(*oc)->Dead() && !(*c)->Dead()){
+					collision = (*c)->CollisionCheck(*oc);
+					if(collision != NULL){
+						(*c)->OnCollision(*oc, collision);
+						(*oc)->OnCollision(*c, collision);
+						delete collision;
+					}
+				}
 			}
 		}
 	}

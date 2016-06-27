@@ -47,6 +47,10 @@ class Character: public Rectangle{
 	float deathStart; // when the death animation started
 	float deathLength; // how long the death animation lasts
 
+	bool uncontrollable; // if the character listens to controller input
+	float uncontrollableStart; // when the uncontrollable-ness started
+	float uncontrollableLength; // how long character is uncontrollable for
+
 	bool jumping; // character is still applying jump
 	float jumpMaxSpeed;
 	float jumpChargeLength;
@@ -60,7 +64,6 @@ class Character: public Rectangle{
 	bool inAir; // is the character in the air
 	bool onLeftWall; // character hitting left wall
 	bool onRightWall; // character hitting right wall
-	bool usedWallJump;
 
 	bool charging; // if a charge is in progress
 	bool chargeReset; // if the button was released from the last charge
@@ -99,7 +102,7 @@ public: // public methods
 	virtual void OnCollision(Character *hitCharacter, Collision *coll); // what to do after a collision
 	virtual void OnCollision(Bullet *bullet, Collision *coll); // what to do after a collision
 	virtual void OnCollision(Ground *ground, Collision *coll); // what to do after a collision
-	virtual void ApplyDamage(float damage, Object *enemy); // if the object takes damage
+	virtual void ApplyDamage(float damage, Character *enemy); // if the object takes damage
 
 	void MenuUpdate(float deltaTime); // apply player input to menu
 	void GameOverUpdate(float deltaTime); // apply player input to game over screen

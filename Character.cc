@@ -35,6 +35,10 @@ Character::Character(bool facingRight, float xPos, float yPos, float xVelo, floa
 	deathStart = 0;
 	deathLength = 2;
 
+	uncontrollable = false;
+	uncontrollableStart = 0;
+	uncontrollableLength = 0.5;
+
 	jumping = false;
 	jumpMaxSpeed = 325;
 
@@ -46,7 +50,6 @@ Character::Character(bool facingRight, float xPos, float yPos, float xVelo, floa
 	inAir = true;
 	onRightWall = false;
 	onLeftWall = false;
-	usedWallJump = false;
 
 	charging = false;
 	chargeReset = true;
@@ -189,7 +192,73 @@ void Character::PhysicsUpdate(float deltaTime){
 
 // character hits another character
 void Character::OnCollision(Character *hitCharacter, Collision *coll){
-	// characters do nothing when they collide with each other
+	// characters turn around and bounce away from each other on collision
+
+	int collX = (int)(coll->GetXPos());
+	int collY = (int)(coll->GetYPos());
+
+	bool lrColl = false;
+	bool tbColl = false;
+
+	// x velocity
+	if(/*xVelo > 0 && */collX <= (int)(GetRight()) && collX > (int)(GetRight() - collisionOffset)){ // switching to ints to remove rounding errors, only pixel position matters
+		if(!(collY <= (int)(GetBottom()) && collY > (int)(GetBottom() - collisionOffset))){
+		// take care of when you hit character to your right
+			if(!onLeftWall){
+				SetVelocity(-400, yVelo);
+			}
+			facingRight = false;
+
+			lrColl = true;
+		}
+	}else if(/*xVelo < 0 && */collX >= (int)(GetLeft()) && collX < (int)(GetLeft() + collisionOffset)){ // switching to ints to remove rounding errors, only pixel position matters
+		
+		if(!(collY <= (int)(GetBottom()) && collY > (int)(GetBottom() - collisionOffset))){
+		// take care of when you hit character to your left
+			if(!onRightWall){
+				SetVelocity(400, yVelo);
+			}
+			facingRight = true;
+
+			lrColl = true;
+		}
+	// this check must be done down here due to how thin the rectangle is
+	}if(collY >= (int)(GetCenterY() - collisionOffset) && collY <= (int)(GetCenterY() + collisionOffset)){
+		// collision is to the side
+	}else if(/*yVelo > 0 && */collY >= (int)(GetTop()) && collY <= (int)(GetTop() + collisionOffset)){
+		// take care of hitting player with head
+		if(inAir){
+			SetVelocity(xVelo, -400);
+
+			tbColl = true;
+			// hitting head stops player's jump
+			if(jumping){
+				jumping = false;
+			}
+		}
+	}else if(/*yVelo < 0 && */collY <= (int)(GetBottom()) && collY >= (int)(GetBottom() - collisionOffset)){
+		// take care of hitting player with feet
+		SetVelocity(xVelo, 400);
+		inAir = true;
+
+		tbColl = true;
+
+		// stepping on someone's head does damage
+		hitCharacter->ApplyDamage(bulletDamage*2, this);
+	}
+
+	if(lrColl || tbColl){
+		// character cannot be controlled
+		uncontrollable = true;
+		uncontrollableStart = SDL_GetTicks();
+
+		// particle effects
+		ParticleSystem *hitParticles = new ParticleSystem(255, 125, 0, 0, 0, 0, 1, 0.5, coll->GetXPos(), coll->GetYPos(), 25, -25, 25, -25, 5, 2, true, 10);
+		game->AddParticleSystem(hitParticles);
+
+		// play sound
+		AudioMaster::PlaySound("./Sounds/CharacterGrunt.wav", 50);
+	}
 }
  // character hits bullet
 void Character::OnCollision(Bullet *bullet, Collision *coll){
@@ -208,7 +277,7 @@ void Character::OnCollision(Bullet *bullet, Collision *coll){
 void Character::OnCollision(Ground *ground, Collision *coll){
 	// collision affects velocity
 	int collX = (int)(coll->GetXPos());
-	int collY = (int)(coll->GetYPos());\
+	int collY = (int)(coll->GetYPos());
 
 	// x velocity
 	if(xVelo > 0 && collX <= (int)(GetRight()) && collX > (int)(GetRight() - collisionOffset)){ // switching to ints to remove rounding errors, only pixel position matters
@@ -233,9 +302,8 @@ void Character::OnCollision(Ground *ground, Collision *coll){
 	}
 
 	// character has landed
-	if(inAir && collY <= (int)(GetBottom()) && collY > (int)(GetBottom() - collisionOffset)){
+	if(inAir && yVelo <= 0 && collY <= (int)(GetBottom()) && collY > (int)(GetBottom() - collisionOffset)){
 		inAir = false;
-		usedWallJump = false;
 
 		// spawn particles
 		ParticleSystem *landParticles = new ParticleSystem(205, 65, 110, 30, 25, 0, 0.5, 0.2, coll->GetXPos(), coll->GetYPos(), -50, 50, 100, 50, 5, 2, true, 20, 0.5);
@@ -262,7 +330,7 @@ void Character::OnCollision(Ground *ground, Collision *coll){
 }
 
 // character takes damage
-void Character::ApplyDamage(float damage, Object *enemy){
+void Character::ApplyDamage(float damage, Character *enemy){
 	if(!immune){
 		// apply damage
 		health -= damage;
@@ -313,9 +381,15 @@ void Character::MenuUpdate(float deltaTime){
 			if(!active){
 				sprite->Darken(false);
 				active = true;
+
+				// play sound
+				AudioMaster::PlaySound("./Sounds/CharacterActive.wav", 40);
 			}else{
 				sprite->Darken(true);
 				active = false;
+
+				// play sound
+				AudioMaster::PlaySound("./Sounds/CharacterNotActive.wav", 30);
 			}
 		}
 	}
@@ -370,9 +444,15 @@ void Character::Update(float deltaTime){
 			immune = false;
 		}
 	}
+	// if the character is uncontrollable, check if they should be made controllable
+	if(uncontrollable){
+		if(((curTime - uncontrollableStart)/1000) >= uncontrollableLength){
+			uncontrollable = false;
+		}
+	}
 	
 	// act according to controller values
-	if(controller != NULL && !dead){
+	if(controller != NULL && !dead && !uncontrollable){
 		// if the button is being pressed
 		bool buttonDown = controller->ButtonDown();
 		bool startCharging = false;
@@ -393,44 +473,6 @@ void Character::Update(float deltaTime){
 				chargeReset = true;
 			}else{
 				chargeReset = false;
-			}
-		}
-
-		// character is in the air, and the button is released
-		if(inAir && endCharging){
-			// if they are jumping, they stop jumping
-			if(jumping){
-				jumping = false;
-			}else if(chargeReset){
-				// otherwise, they shoot
-				Shoot();
-			}
-		}else if(inAir && charging && !usedWallJump && !jumping){
-			if(onRightWall && xVelo >= 0){
-				Jump(deltaTime);
-				usedWallJump = true;
-				jumping = true;
-			}else if(onLeftWall && xVelo <= 0){
-				Jump(deltaTime);
-				usedWallJump = true;
-				jumping = true;
-			}
-		// character is not in the air, and releases the button, or they are in the air and the button is down in the air while they are jumping
-		}else if((!inAir && charging && !jumping) || (inAir && jumping && charging)){
-			// then they continue to jump
-			jumpChargeLength = (SDL_GetTicks() - chargeStart)/1000;
-			if(jumpChargeLength < maxChargeLength){
-				// have character jump
-				if(!jumping){
-					Jump(deltaTime);
-					inAir = true;
-				}
-				jumping = true;
-			// character has jumped for max duration
-			}else{
-				jumping = false;
-				// charging ends, forcing character to re-press button to fire
-				chargeReset = true;
 			}
 		}
 
@@ -517,6 +559,44 @@ void Character::Update(float deltaTime){
 				ApplyAcceleration(xDir*moveAccel, 0, deltaTime);
 			}
 		}
+
+		// character is in the air, and the button is released
+		if(inAir && endCharging){
+			// if they are jumping, they stop jumping
+			if(jumping){
+				jumping = false;
+			}else if(chargeReset){
+				// otherwise, they shoot
+				Shoot();
+			}
+		}else if(inAir && startCharging && yVelo <= 0 && !jumping){
+			// on right wall and player is holding right
+			if(onRightWall){
+				Jump(deltaTime);
+				jumping = true;
+			// on left wall and play is holding left
+			}else if(onLeftWall){
+				Jump(deltaTime);
+				jumping = true;
+			}
+		// character is not in the air, and releases the button, or they are in the air and the button is down in the air while they are jumping
+		}else if((!inAir && startCharging && !jumping) || (inAir && jumping && charging)){
+			// then they continue to jump
+			jumpChargeLength = (SDL_GetTicks() - chargeStart)/1000;
+			if(jumpChargeLength < maxChargeLength){
+				// have character jump
+				if(!jumping){
+					Jump(deltaTime);
+					inAir = true;
+				}
+				jumping = true;
+			// character has jumped for max duration
+			}else{
+				jumping = false;
+				// charging ends, forcing character to re-press button to fire
+				chargeReset = true;
+			}
+		}
 	}else{
 		// accelerate in opposite direction to slow down
 		if(xVelo > 0){
@@ -561,7 +641,7 @@ void Character::Jump(float deltaTime){
 	SetVelocity(xVelo, yVelo+(jumpMaxSpeed));
 
 	// play sound
-	AudioMaster::PlaySound("./Sounds/CharacterJump.wav", 30);
+	AudioMaster::PlaySound("./Sounds/CharacterJump.wav", 60);
 
 	// spawn particles
 	ParticleSystem *jumpParticles = new ParticleSystem(255, 190, 255, 190, 255, 190, 0.5, 0.2, GetCenterX(), GetBottom(), -50, 50, 0, -25, 5, 2, true, 20, 0.5);

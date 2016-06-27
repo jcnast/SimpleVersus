@@ -10,7 +10,3 @@ Power Ups: have boxes that, when walked through, provide the player with power u
 	Invulnerability: player invulnerable for 30 sec
 
 	Fire in both directions: do as described
-
-	Wall Jump: player can jump off walls
-
-	Double Jump: jump twice

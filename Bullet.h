@@ -39,7 +39,7 @@ public: // public methods
 
 	Character *GetCharacter(); // get the bullet's character
 
-	virtual void DoDamage(Character *character); // do damage to character
+	virtual void DoDamage(Character *enemyCharacter); // do damage to character
 	virtual void Render(); // render bullet sprite
 
 private: // private methods

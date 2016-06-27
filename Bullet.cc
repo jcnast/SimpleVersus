@@ -47,7 +47,7 @@ void Bullet::PhysicsUpdate(float deltaTime){
 
 void Bullet::OnCollision(Character *hitCharacter, Collision *coll){
 	if(character != hitCharacter){
-		hitCharacter->ApplyDamage(damage, this);
+		hitCharacter->ApplyDamage(damage, character);
 		// queue the bullet to be destroyed at the end of the current game loop
 		game->QueueDelete(this);
 
@@ -72,8 +72,8 @@ Character *Bullet::GetCharacter(){
 }
 
 // do damage to character
-void Bullet::DoDamage(Character *character){
-	character->ApplyDamage(damage, this);
+void Bullet::DoDamage(Character *enemyCharacter){
+	character->ApplyDamage(damage, character);
 }
 
 // render bullet sprite
