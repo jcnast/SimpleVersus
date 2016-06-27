@@ -194,7 +194,13 @@ void GameMaster::StartGame(){
 	if(inMenu){
 		inMenu = false;
 		leavingMenu = false;
+		// lighten background
 		background->Darken(false);
+
+		// lighten all the grounds
+		for(std::vector<Ground *>::iterator g = ground.begin(); g != ground.end(); ++g) {
+	   	(*g)->Darken(false);
+		}
 
 		// sound effect
 		AudioMaster::PlaySound("./Sounds/GameStart.wav", 100);
@@ -208,10 +214,10 @@ void GameMaster::EndGame(){
 		winner->StartFlash(229, 221, 0, winnerFlashTime, 0.1);
 
 		// spawn particles
-		ParticleSystem *leftParticles = new ParticleSystem(255, 229, 248, 221, 69, 0, 10, 5, 120, 150, 50, -30, 40, 10, 8, 1, true, 50);
+		ParticleSystem *leftParticles = new ParticleSystem(255, 229, 248, 221, 69, 0, 6, 2, screenWidth/2 - 200, 200, 50, -30, 40, 10, 8, 1, true, 50);
 		AddParticleSystem(leftParticles);
 		// spawn particles
-		ParticleSystem *rightParticles = new ParticleSystem(255, 229, 248, 221, 69, 0, 10, 5, 520, 150, 30, -50, 40, 10, 8, 1, true, 50);
+		ParticleSystem *rightParticles = new ParticleSystem(255, 229, 248, 221, 69, 0, 6, 2, screenWidth/2 + 200, 200, 30, -50, 40, 10, 8, 1, true, 50);
 		AddParticleSystem(rightParticles);
 
 		// sound effects
@@ -232,9 +238,9 @@ void GameMaster::Restart(bool rematch){
 			}
 			(*c)->Reset((*c)->IsActive());
 			if(rematch && (*c)->IsActive()){
-				(*c)->SetPosition((3-index)/2, 50+(175*index), screenHeight-150);
+				(*c)->SetPosition((3-index)/2, screenWidth/5 + screenWidth/5*index, screenHeight-150);
 			}else{
-				(*c)->SetPosition((3-index)/2, 50+(175*index), screenHeight-150);
+				(*c)->SetPosition((3-index)/2, screenWidth/5 + screenWidth/5*index, screenHeight-150);
 			}
 
 			index++;
@@ -492,12 +498,12 @@ void GameMaster::Render(){
 	}
 
 	if(inMenu || leavingMenu){
-		title->Render(120, 25);
-		controls->Render(120, 100);
+		title->Render(screenWidth/2 - 200, 75);
+		controls->Render(screenWidth/2 - 200, 250);
 	}
 
 	if(gameOver){
-		winner->Render(120, 50);
+		winner->Render(screenWidth/2 - 200, 100);
 	}
 
 	SDL_RenderPresent(renderer);
@@ -547,16 +553,28 @@ void GameMaster::SpawnGround(){
 	Ground *bottomGround = new Ground(0, screenHeight-25, true, screenWidth);
 	AddGround(bottomGround);
 
-	Ground *leftPlatform = new Ground(100, screenHeight/2, true, 100);
+	// make all platforms dark to start
+	Ground *leftPlatform = new Ground(100, screenHeight - screenHeight/4 - 50, true, 300);
+	leftPlatform->Darken(true);
 	AddGround(leftPlatform);
-	Ground *rightPlatform = new Ground(screenWidth-200, screenHeight/2, true, 100);
+	Ground *rightPlatform = new Ground(screenWidth - 400, screenHeight - screenHeight/4 - 50, true, 300);
+	rightPlatform->Darken(true);
 	AddGround(rightPlatform);
+	Ground *middlePlatform = new Ground(screenWidth/2 - 150, screenHeight/2 - 50, true, 300);
+	middlePlatform->Darken(true);
+	AddGround(middlePlatform);
+	Ground *topLeftPlatform = new Ground(0, screenHeight/4, true, 300);
+	topLeftPlatform->Darken(true);
+	AddGround(topLeftPlatform);
+	Ground *topRightPlatform = new Ground(screenWidth - 300, screenHeight/4, true, 300);
+	topRightPlatform->Darken(true);
+	AddGround(topRightPlatform);
 }
 
 // spawn the characters
 void GameMaster::SpawnCharacters(){
 	for(int i = 0; i < numPlayers; i++){
-		Character *newCharacter = new Character((3-i)/2, 50+(175*i), screenHeight-150, 0, 0);
+		Character *newCharacter = new Character((3-i)/2, screenWidth/5 + screenWidth/5*i, screenHeight-150, 0, 0);
 		// set character's colour
 		Uint8 red = rand()%255;
 		Uint8 green = rand()%255;

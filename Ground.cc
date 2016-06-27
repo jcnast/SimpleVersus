@@ -70,3 +70,8 @@ void Ground::Render(){
  //  SDL_SetRenderDrawColor(game->GetRenderer(), 0x00, 0xFF, 0x00, 0xFF);        
  //  SDL_RenderDrawRect(game->GetRenderer(), &outlineRect);
 }
+
+// darken sprite
+void Ground::Darken(bool dark){
+	sprite->Darken(dark);
+}

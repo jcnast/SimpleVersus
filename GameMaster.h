@@ -90,7 +90,7 @@ public: // public methods
 	void DeleteObject(Character *character);
 
 private: // private methods
-	GameMaster(int width = 640, int height = 480); // constructor
+	GameMaster(int width = 1180, int height = 740); // constructor
 
 	// menu update function
 	void MenuUpdate(); // update the menu

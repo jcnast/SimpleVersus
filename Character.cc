@@ -225,7 +225,7 @@ void Character::OnCollision(Character *hitCharacter, Collision *coll){
 	// this check must be done down here due to how thin the rectangle is
 	}if(collY >= (int)(GetCenterY() - collisionOffset) && collY <= (int)(GetCenterY() + collisionOffset)){
 		// collision is to the side
-	}else if(/*yVelo > 0 && */collY >= (int)(GetTop()) && collY <= (int)(GetTop() + collisionOffset)){
+	}else if(collY >= (int)(GetTop()) && collY <= (int)(GetTop() + collisionOffset)){
 		// take care of hitting player with head
 		if(inAir){
 			SetVelocity(xVelo, -400);
@@ -236,7 +236,11 @@ void Character::OnCollision(Character *hitCharacter, Collision *coll){
 				jumping = false;
 			}
 		}
-	}else if(/*yVelo < 0 && */collY <= (int)(GetBottom()) && collY >= (int)(GetBottom() - collisionOffset)){
+
+		// particle effects
+		ParticleSystem *hitParticles = new ParticleSystem(255, 125, 0, 0, 0, 0, 1, 0.5, coll->GetXPos(), coll->GetYPos(), 25, -25, 25, -25, 5, 2, true, 10);
+		game->AddParticleSystem(hitParticles);
+	}else if(collY <= (int)(GetBottom()) && collY >= (int)(GetBottom() - collisionOffset)){
 		// take care of hitting player with feet
 		SetVelocity(xVelo, 400);
 		inAir = true;
@@ -251,10 +255,6 @@ void Character::OnCollision(Character *hitCharacter, Collision *coll){
 		// character cannot be controlled
 		uncontrollable = true;
 		uncontrollableStart = SDL_GetTicks();
-
-		// particle effects
-		ParticleSystem *hitParticles = new ParticleSystem(255, 125, 0, 0, 0, 0, 1, 0.5, coll->GetXPos(), coll->GetYPos(), 25, -25, 25, -25, 5, 2, true, 10);
-		game->AddParticleSystem(hitParticles);
 
 		// play sound
 		AudioMaster::PlaySound("./Sounds/CharacterGrunt.wav", 50);

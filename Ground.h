@@ -29,6 +29,7 @@ public: // public methods
 	virtual void OnCollision(Ground *hitGround, Collision *coll); // what to do after a collision
 
 	virtual void Render(); // render the ground's sprite
+	void Darken(bool dark); // darken ground
 
 private: // private methods
 
