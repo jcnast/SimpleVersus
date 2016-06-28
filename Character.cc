@@ -7,7 +7,7 @@
 #include "ControllerMaster.h"
 #include "Controller.h"
 #include "ParticleSystem.h"
-#include "Texture.h"
+#include "Sprite.h"
 #include "GameMaster.h"
 #include "AudioMaster.h"
 
@@ -16,6 +16,9 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_joystick.h>
 #include <SDL2/SDL_events.h>
+
+//debug
+// #include <iostream>
 
 Character::Character(bool facingRight, float xPos, float yPos, float xVelo, float yVelo):
 	Rectangle(25, 75, xPos, yPos, xVelo, yVelo, 100, 0.9), facingRight(facingRight){
@@ -43,7 +46,7 @@ Character::Character(bool facingRight, float xPos, float yPos, float xVelo, floa
 	jumpMaxSpeed = 325;
 
 	moveAccel = 600;
-	moveSpeed = 250;
+	moveSpeed = 350;
 
 	collisionOffset = 10;
 
@@ -62,7 +65,10 @@ Character::Character(bool facingRight, float xPos, float yPos, float xVelo, floa
 	bulletSpeed = 500;
 
 	// set sprite attributes
-	sprite = new Texture();
+	sprite = new Sprite(6);
+	curFrame = 0;
+	walkFrameRate = 10;
+	lastSpriteChange = 0;
 	leftXOffset = 15;
 	rightXOffset = 35;
 	sprite->SetRenderer(game->GetRenderer());
@@ -256,6 +262,9 @@ void Character::OnCollision(Character *hitCharacter, Collision *coll){
 		uncontrollable = true;
 		uncontrollableStart = SDL_GetTicks();
 
+		// visual effect
+		sprite->StartFlash(red/2, green/2, blue/2, uncontrollableLength, 0.1);
+
 		// play sound
 		AudioMaster::PlaySound("./Sounds/CharacterGrunt.wav", 50);
 	}
@@ -338,7 +347,7 @@ void Character::ApplyDamage(float damage, Character *enemy){
 		immune = true;
 		immuneStart = SDL_GetTicks();
 		// damage taken flash
-		sprite->StartFlash(red/2, green/2, blue/2, immuneDuration, 0.1);
+		sprite->StartFlash(red+255, green+255, blue+255, immuneDuration, 0.1);
 	}
 
 	if(health <= 0){
@@ -494,10 +503,18 @@ void Character::Update(float deltaTime){
 			if(xVelo > 0){
 				if(!inAir){
 					ApplyAcceleration(-1*moveAccel, 0 , deltaTime);
+					// accelerate to a stop only
+					if(xVelo < 0){
+						xVelo = 0;
+					}
 				}
 			}else if(xVelo < 0){
 				if(!inAir){
 					ApplyAcceleration(moveAccel, 0, deltaTime);
+					// accelerate to a stop only
+					if(xVelo > 0){
+						xVelo = 0;
+					}
 				}
 			}else{
 				// not moving
@@ -621,7 +638,51 @@ void Character::Render(){
   if(!facingRight){
   	xOffset = rightXOffset;
   }
-	sprite->Render(xPos - xOffset, yPos, !facingRight);
+
+  // character is standing by default
+  int clip = 0;
+  lastSpriteChange++;
+  // character in the air
+  if(inAir){
+  	// character is on left wall
+  	if(onLeftWall && yVelo <= 0){
+  		clip = 5;
+  	// character is on right wall
+  	}else if(onRightWall && yVelo <= 0){
+  		clip = 5;
+  	// character is jumping
+  	}else{
+  		clip = 4;
+  	}
+  // character has just been hit
+  }else if(immune || uncontrollable){
+  	clip = 3;
+  // character is walking
+  }else if(xVelo*xVelo > 0){
+  	if(lastSpriteChange > walkFrameRate){
+  		if(curFrame == 1){
+  			clip = 2;
+  		}else{
+  			clip = 1;
+  		}
+  		lastSpriteChange = 0;
+  	}else{
+  		clip = curFrame;
+  	}
+  }
+	curFrame = clip;
+
+	// on right wall makes you look in to map
+	if(onRightWall){
+		xOffset = rightXOffset;
+		facingRight = false;
+	// on left wall makes you look in to map
+	}else if(onLeftWall){
+  	xOffset = leftXOffset;
+		facingRight = true;
+	}
+
+	sprite->Render(xPos - xOffset, yPos, clip, !facingRight);
 	// render health bar
 	if(!dead && active){
 		SDL_Rect healthBarRect = {GetXPos()-(health/2), yPos-20, health, 10};
@@ -655,6 +716,13 @@ void Character::Shoot(){
 	float yPos = ((GetTop()+GetBottom())/2);
 	float xVel = bulletSpeed;
 	float yVel = 0;
+
+	if(onRightWall){
+		facingRight = false;
+	}else if(onLeftWall){
+		facingRight = true;
+	}
+
 	// spawn bullet on the side the character is facing
 	if(!facingRight){
 		xPos = GetLeft();

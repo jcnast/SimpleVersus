@@ -1,12 +1,12 @@
 # OBJS specifies which files to compile as part of the project
-OBJS = GameLoop.o GameMaster.o Object.o Circle.o Rectangle.o Bullet.o Character.o Ground.o Collision.o Texture.o ControllerMaster.o Controller.o ParticleSystem.o Particle.o AudioMaster.o
+OBJS = GameLoop.o GameMaster.o Object.o Circle.o Rectangle.o Bullet.o Character.o Ground.o Collision.o Texture.o ControllerMaster.o Controller.o ParticleSystem.o Particle.o AudioMaster.o Sprite.o
 CC = g++
 DEBUG = -g
 FLAGS = -lSDL2 -lSDL2_image $(DEBUG)
 OBJ_NAME = SimpleVersus
 
 SimpleVersus: $(OBJS)
-	$(CC) -o $(OBJ_NAME) $(FLAGS) -c
+	$(CC) -o $(OBJ_NAME) $(OBJS) $(FLAGS) -c
 
 GameLoop.o: GameLoop.cc GameMaster.h ControllerMaster.h AudioMaster.h
 	$(CC) GameLoop.cc $(FLAGS) -c
@@ -26,7 +26,7 @@ Rectangle.o: Rectangle.h Rectangle.cc Object.h Circle.h Collision.h
 Bullet.o: Bullet.h Bullet.cc Circle.h Character.h Ground.h Collision.h AudioMaster.h Texture.h GameMaster.h
 	$(CC) Bullet.cc $(FLAGS) -c
 
-Character.o: Character.h Character.cc Rectangle.h Bullet.h Ground.h Collision.h ControllerMaster.h Controller.h ParticleSystem.h Texture.h GameMaster.h AudioMaster.h
+Character.o: Character.h Character.cc Rectangle.h Bullet.h Ground.h Collision.h ControllerMaster.h Controller.h ParticleSystem.h Sprite.h GameMaster.h AudioMaster.h
 	$(CC) Character.cc $(FLAGS) -c
 
 Ground.o: Ground.h Ground.cc Rectangle.h Bullet.h Character.h Collision.h ParticleSystem.h GameMaster.h AudioMaster.h Texture.h
@@ -53,11 +53,14 @@ Particle.o: Particle.h Particle.cc Object.h Circle.h Texture.h ParticleSystem.h 
 AudioMaster.o: AudioMaster.h AudioMaster.cc
 	$(CC) AudioMaster.cc $(FLAGS) -c
 
+Sprite.o: Sprite.h Sprite.h Texture.h
+	$(CC) Sprite.cc $(FLAGS) -c
+
 clean:
-	\rm *.o *~ Game
+	\rm *.o *~ SimpleVersus
 
 tar:
-	tar cfv Game.tar GameLoop.cc GameMaster.h GameMaster.cc Object.h Object.cc Circle.h Circle.cc Rectangle.h Rectangle.cc\
+	tar cfv SimpleVersus.tar GameLoop.cc GameMaster.h GameMaster.cc Object.h Object.cc Circle.h Circle.cc Rectangle.h Rectangle.cc\
 										Bullet.h Bullet.cc Character.h Character.cc Ground.h Ground.cc Collision.h Collision.cc Texture.h Texture.cc\
 										ControllerMaster.h ControllerMaster.cc Controller.h Controller.cc	ParticleSystem.h ParticleSystem.cc Particle.h\
 										Particle.cc AudioMaster.h AudioMaster.cc

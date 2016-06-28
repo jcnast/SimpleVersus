@@ -28,7 +28,7 @@ ControllerMaster::ControllerMaster(){
 ControllerMaster::~ControllerMaster(){
 	std::vector<Controller *> tempControllers = controllers;
 	for(std::vector<Controller *>::iterator c = tempControllers.begin(); c != tempControllers.end(); ++c) {
-    delete *c;
+        delete *c;
 	}
 }
 

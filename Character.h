@@ -9,7 +9,7 @@
 #include <SDL2/SDL_joystick.h>
 
 // forward declarations
-class Texture;
+class Sprite;
 class Rectangle;
 class Bullet;
 class Ground;
@@ -31,7 +31,10 @@ class Character: public Rectangle{
 	// SoundEffect *landSound;
 
 // character sprite
-	Texture *sprite;
+	Sprite *sprite;
+	int curFrame;
+	int walkFrameRate;
+	int lastSpriteChange;
 	float leftXOffset;
 	float rightXOffset;
 	Uint8 red;

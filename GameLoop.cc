@@ -5,6 +5,8 @@
 
 // include necessary libraries
 #include <iostream>
+#include <time.h>
+#include <cstdlib>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_joystick.h>
@@ -24,6 +26,14 @@ int main( int argc, char* args[] )
 	if(!(IMG_Init(IMG_INIT_PNG))){
     printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
   }
+  //Set texture filtering to linear
+	if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
+	{
+		printf( "Warning: Linear texture filtering not enabled!" );
+	}
+
+/**** seed random to current time ****/
+  srand(time(NULL));
 
 /**** set up all objects needed for game to run ****/
   AudioMaster *audio = AudioMaster::GetInstance();

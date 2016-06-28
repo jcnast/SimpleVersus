@@ -382,10 +382,10 @@ void GameMaster::PhysicsUpdate(){
 	// collisions for current game loop
 	Collision *collision;
 
-	// update ground physics
-	for(std::vector<Ground *>::iterator g = ground.begin(); g != ground.end(); ++g) {
-   	(*g)->PhysicsUpdate(DeltaTime());
-	}
+	// update ground physics (CURRENTLY GROUND OBJECTS DO NOT MOVE)
+	// for(std::vector<Ground *>::iterator g = ground.begin(); g != ground.end(); ++g) {
+   	// (*g)->PhysicsUpdate(DeltaTime());
+	// }
 
 	// update players physics
 	for(std::vector<Character *>::iterator c = characters.begin(); c != characters.end(); ++c) {
@@ -413,17 +413,20 @@ void GameMaster::PhysicsUpdate(){
 
 			// or with a bullet
 			for(std::vector<Bullet *>::iterator b = bullets.begin(); b != bullets.end(); ++b) {
-		    collision = (*c)->CollisionCheck(*b);
-		    if(collision != NULL && !((*c)->Dead())){
-		    	(*c)->OnCollision(*b, collision);
-		    	(*b)->OnCollision(*c, collision);
-		    	delete collision;
-		    }
+				// do not check bullets that the character fired
+				if((*b)->GetCharacter() != *c){
+			    collision = (*c)->CollisionCheck(*b);
+			    if(collision != NULL && !((*c)->Dead())){
+			    	(*c)->OnCollision(*b, collision);
+			    	(*b)->OnCollision(*c, collision);
+			    	delete collision;
+			    }
+			  }
 			}
 
-			// or with another character
-			for(std::vector<Character *>::iterator oc = characters.begin(); oc != characters.end(); ++oc){
-				if((*oc) != (*c) && !(*oc)->Dead() && !(*c)->Dead()){
+			// or with another character (starting with the first character that has not been checked)
+			for(std::vector<Character *>::iterator oc = c+1; oc != characters.end(); ++oc){
+				if(!(*oc)->Dead() && !(*c)->Dead()){
 					collision = (*c)->CollisionCheck(*oc);
 					if(collision != NULL){
 						(*c)->OnCollision(*oc, collision);
@@ -576,9 +579,30 @@ void GameMaster::SpawnCharacters(){
 	for(int i = 0; i < numPlayers; i++){
 		Character *newCharacter = new Character((3-i)/2, screenWidth/5 + screenWidth/5*i, screenHeight-150, 0, 0);
 		// set character's colour
-		Uint8 red = rand()%255;
-		Uint8 green = rand()%255;
-		Uint8 blue = rand()%255;
+		Uint8 red = 255;
+		if(i == 0 || i == 3){
+			red = 255;
+		}else if(i <= 3){
+			red = 0;
+		}else{
+			red = rand()%255;
+		}
+		Uint8 green = 255;
+		if(i == 1 || i == 3){
+			green = 255;
+		}else if(i <= 3){
+			green = 0;
+		}else{
+			green = rand()%255;
+		}
+		Uint8 blue = 255;
+		if(i == 2){
+			blue = 255;
+		}else if(i <= 3){
+			blue = 0;
+		}else{
+			blue = rand()%255;
+		}
 		newCharacter->SetColor(red, green, blue);
 
 		// keep track of character

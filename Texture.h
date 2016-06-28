@@ -8,6 +8,8 @@
 #include <SDL2/SDL.h>
 
 class Texture{
+
+protected:
 	int width; // width of texture
 	int height; // height of texture
 	//default colors
@@ -46,13 +48,13 @@ class Texture{
 
 public:
 	Texture(int width = 0, int height = 0); // constructor
-	~Texture(); // destructor
+	virtual ~Texture(); // destructor
 
 	bool SetImage(std::string path); // set the image of the texture
 	void FreeTexture(); // deallocates the SDL texture
 	void ColourChange(Uint8 red, Uint8 green, Uint8 blue); // change the texture color
 	void AlphaChange(Uint8 alpha); // change the alpha of the texture
-	void Render(int x, int y, bool flip = false); // render texture at given coordinates
+	virtual void Render(int x, int y, bool flip = false); // render texture at given coordinates
 
 	void StartFlash(Uint8 red, Uint8 green, Uint8 blue, float length, float interval); // start texture flash
 	void StartFade(float length); // start texture fade
@@ -64,7 +66,7 @@ public:
 
 	bool SetRenderer(SDL_Renderer *newRenderer); // set the texture's renderer
 
-private:
+protected:
 	void Flash(); // do the flash
 	void Fade(); // apply the fade
 };
