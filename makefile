@@ -6,7 +6,7 @@ FLAGS = -lSDL2 -lSDL2_image $(DEBUG)
 OBJ_NAME = SimpleVersus
 
 SimpleVersus: $(OBJS)
-	$(CC) -o $(OBJ_NAME) $(OBJS) $(FLAGS) -c
+	$(CC) -o $(OBJ_NAME) $(OBJS) $(FLAGS)
 
 GameLoop.o: GameLoop.cc GameMaster.h ControllerMaster.h AudioMaster.h
 	$(CC) GameLoop.cc $(FLAGS) -c
