@@ -24,12 +24,12 @@ int main( int argc, char* args[] )
 		// std::cout << "SDL Initialized" << std::endl;
 	}
 	if(!(IMG_Init(IMG_INIT_PNG))){
-    printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
+    	std::cout << "SDL_image could not initialize!" << std::endl;
   }
   //Set texture filtering to linear
 	if( !SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" ) )
 	{
-		printf( "Warning: Linear texture filtering not enabled!" );
+		std::cout <<  "Warning: Linear texture filtering not enabled!" << std::endl;
 	}
 
 /**** seed random to current time ****/

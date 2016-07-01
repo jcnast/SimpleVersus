@@ -1,9 +1,22 @@
+# default
+default: SimpleVersus
+
+# windows stuff
+WIN_SDL_INCLUDE=C:\SDL\include
+WIN_SDL_LIB=C:\SDL\lib
+
 # OBJS specifies which files to compile as part of the project
 OBJS = GameLoop.o GameMaster.o Object.o Circle.o Rectangle.o Bullet.o Character.o Ground.o Collision.o Texture.o ControllerMaster.o Controller.o ParticleSystem.o Particle.o AudioMaster.o Sprite.o
 CC = g++
 DEBUG = -g
 FLAGS = -lSDL2 -lSDL2_image $(DEBUG)
 OBJ_NAME = SimpleVersus
+
+# windows: FLAGS = -I$(WIN_SDL_INCLUDE) -D_REENTRANT -L$(WIN_SDL_LIB) -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -mwindows
+# windows: SimpleVersus.exe
+
+SimpleVersus.exe: $(OBJS)
+	$(CC) -o $(OBJ_NAME) $(OBJS) $(FLAGS)
 
 SimpleVersus: $(OBJS)
 	$(CC) -o $(OBJ_NAME) $(OBJS) $(FLAGS)

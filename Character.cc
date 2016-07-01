@@ -12,13 +12,14 @@
 #include "AudioMaster.h"
 
 // include necessary libraries
+#include <cmath>
 #include <iomanip>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_joystick.h>
 #include <SDL2/SDL_events.h>
 
 //debug
-// #include <iostream>
+#include <iostream>
 
 Character::Character(bool facingRight, float xPos, float yPos, float xVelo, float yVelo):
 	Rectangle(25, 75, xPos, yPos, xVelo, yVelo, 100, 0.9), facingRight(facingRight){
@@ -41,14 +42,15 @@ Character::Character(bool facingRight, float xPos, float yPos, float xVelo, floa
 	uncontrollable = false;
 	uncontrollableStart = 0;
 	uncontrollableLength = 0.5;
+	uncontrollableAccel = 500;
 
 	jumping = false;
-	jumpMaxSpeed = 325;
+	jumpMaxSpeed = 350;
 
-	moveAccel = 600;
-	moveSpeed = 350;
+	moveAccel = 2000;
+	moveSpeed = 500;
 
-	collisionOffset = 10;
+	collisionOffset = 5;
 
 	inAir = true;
 	onRightWall = false;
@@ -62,7 +64,7 @@ Character::Character(bool facingRight, float xPos, float yPos, float xVelo, floa
 	immuneDuration = 0.5;
 
 	bulletDamage = 10;
-	bulletSpeed = 500;
+	bulletSpeed = 700;
 
 	// set sprite attributes
 	sprite = new Sprite(6);
@@ -185,7 +187,7 @@ void Character::PhysicsUpdate(float deltaTime){
 	// only apply gravity when the character is in the air
 	if(inAir){
 		if(jumping){
-			ApplyAcceleration(0, gravity*0.3, deltaTime);
+			ApplyAcceleration(0, gravity*0.15, deltaTime);
 		}else{
 			ApplyAcceleration(0, gravity, deltaTime);
 		}
@@ -206,32 +208,40 @@ void Character::OnCollision(Character *hitCharacter, Collision *coll){
 	bool lrColl = false;
 	bool tbColl = false;
 
+	int xCollOffset = game->DeltaTime()*std::abs(xVelo);
+	if(xCollOffset < collisionOffset){
+		xCollOffset = collisionOffset;
+	}
+	int yCollOffset = game->DeltaTime()*std::abs(yVelo);
+	if(yCollOffset < collisionOffset){
+		yCollOffset = collisionOffset;
+	}
+
 	// x velocity
-	if(/*xVelo > 0 && */collX <= (int)(GetRight()) && collX > (int)(GetRight() - collisionOffset)){ // switching to ints to remove rounding errors, only pixel position matters
-		if(!(collY <= (int)(GetBottom()) && collY > (int)(GetBottom() - collisionOffset))){
+	if(/*xVelo > 0 && */collX <= (int)(GetRight()) && collX > (int)(GetRight() - xCollOffset)){ // switching to ints to remove rounding errors, only pixel position matters
+		if(!(collY <= (int)(GetBottom()) && collY > (int)(GetBottom() - yCollOffset))){
 		// take care of when you hit character to your right
 			if(!onLeftWall){
 				SetVelocity(-400, yVelo);
 			}
-			facingRight = false;
 
 			lrColl = true;
 		}
-	}else if(/*xVelo < 0 && */collX >= (int)(GetLeft()) && collX < (int)(GetLeft() + collisionOffset)){ // switching to ints to remove rounding errors, only pixel position matters
+	}else if(/*xVelo < 0 && */collX >= (int)(GetLeft()) && collX < (int)(GetLeft() + xCollOffset)){ // switching to ints to remove rounding errors, only pixel position matters
 		
-		if(!(collY <= (int)(GetBottom()) && collY > (int)(GetBottom() - collisionOffset))){
+		if(!(collY <= (int)(GetBottom()) && collY > (int)(GetBottom() - yCollOffset))){
 		// take care of when you hit character to your left
 			if(!onRightWall){
 				SetVelocity(400, yVelo);
 			}
-			facingRight = true;
 
 			lrColl = true;
 		}
 	// this check must be done down here due to how thin the rectangle is
-	}if(collY >= (int)(GetCenterY() - collisionOffset) && collY <= (int)(GetCenterY() + collisionOffset)){
+	}
+	if(collY >= (int)(GetCenterY() - yCollOffset) && collY <= (int)(GetCenterY() + yCollOffset)){
 		// collision is to the side
-	}else if(collY >= (int)(GetTop()) && collY <= (int)(GetTop() + collisionOffset)){
+	}else if(collY >= (int)(GetTop()) && collY <= (int)(GetTop() + yCollOffset)){
 		// take care of hitting player with head
 		if(inAir){
 			SetVelocity(xVelo, -400);
@@ -244,9 +254,9 @@ void Character::OnCollision(Character *hitCharacter, Collision *coll){
 		}
 
 		// particle effects
-		ParticleSystem *hitParticles = new ParticleSystem(255, 125, 0, 0, 0, 0, 1, 0.5, coll->GetXPos(), coll->GetYPos(), 25, -25, 25, -25, 5, 2, true, 10);
+		ParticleSystem *hitParticles = new ParticleSystem(255, 125, 0, 0, 0, 0, 1, 0.5, coll->GetXPos(), coll->GetYPos(), 35, -35, 35, -35, 8, 3, true, 20, 0);
 		game->AddParticleSystem(hitParticles);
-	}else if(collY <= (int)(GetBottom()) && collY >= (int)(GetBottom() - collisionOffset)){
+	}else if(collY <= (int)(GetBottom()) && collY >= (int)(GetBottom() - yCollOffset)){
 		// take care of hitting player with feet
 		SetVelocity(xVelo, 400);
 		inAir = true;
@@ -263,7 +273,7 @@ void Character::OnCollision(Character *hitCharacter, Collision *coll){
 		uncontrollableStart = SDL_GetTicks();
 
 		// visual effect
-		sprite->StartFlash(red/2, green/2, blue/2, uncontrollableLength, 0.1);
+		// sprite->StartFlash(red/2, green/2, blue/2, uncontrollableLength, 0.1);
 
 		// play sound
 		AudioMaster::PlaySound("./Sounds/CharacterGrunt.wav", 50);
@@ -274,7 +284,7 @@ void Character::OnCollision(Bullet *bullet, Collision *coll){
 	// bullet is in charge of doing damage to bullet
 	if(bullet->GetCharacter() != this && !immune){ // do not interact with 'friendly' bullet
 
-		ParticleSystem *hitParticles = new ParticleSystem(255, 125, 0, 0, 0, 0, 1, 0.5, coll->GetXPos(), coll->GetYPos(), -0.1*(bullet->GetXVelo()), -0.05*(bullet->GetXVelo()), -0.5*(GetYVelo()), -0.1*(GetYVelo()), 5, 2, true, 20);
+		ParticleSystem *hitParticles = new ParticleSystem(255, 125, 0, 0, 0, 0, 1, 0.5, coll->GetXPos(), coll->GetYPos(), 35, -35, 35, -35, 8, 3, true, 20, 0);
 		game->AddParticleSystem(hitParticles);
 
 		// play sound
@@ -288,51 +298,66 @@ void Character::OnCollision(Ground *ground, Collision *coll){
 	int collX = (int)(coll->GetXPos());
 	int collY = (int)(coll->GetYPos());
 
+	int xCollOffset = game->DeltaTime()*std::abs(xVelo);
+	if(xCollOffset < collisionOffset){
+		xCollOffset = collisionOffset;
+	}
+	int yCollOffset = game->DeltaTime()*std::abs(yVelo);
+	if(yCollOffset < collisionOffset){
+		yCollOffset = collisionOffset;
+	}
+
 	// x velocity
-	if(xVelo > 0 && collX <= (int)(GetRight()) && collX > (int)(GetRight() - collisionOffset)){ // switching to ints to remove rounding errors, only pixel position matters
+	if(xVelo >= 0 && collX <= (int)(GetRight()) && collX >= (int)(GetRight() - xCollOffset)){ // switching to ints to remove rounding errors, only pixel position matters
 	
-		if(!(collY <= (int)(GetBottom()) && collY > (int)(GetBottom() - collisionOffset))){
+		if(!(collY <= (int)(GetBottom()) && collY > (int)(GetBottom() - yCollOffset))){
 		// take care of when on top corner of platform
 			onRightWall = true;
 			xVelo = 0;
 			xPos -= ((int)(GetRight()) - collX);
 		}
-	}else if(xVelo < 0 && collX >= (int)(GetLeft()) && collX < (int)(GetLeft() + collisionOffset)){ // switching to ints to remove rounding errors, only pixel position matters
+	}else if(xVelo <= 0 && collX >= (int)(GetLeft()) && collX <= (int)(GetLeft() + xCollOffset)){ // switching to ints to remove rounding errors, only pixel position matters
 		
-		if(!(collY <= (int)(GetBottom()) && collY > (int)(GetBottom() - collisionOffset))){
+		if(!(collY <= (int)(GetBottom()) && collY > (int)(GetBottom() - yCollOffset))){
 		// take care of when on top corner of platform
 			onLeftWall = true;
 			xVelo = 0;
 			xPos -= ((int)(GetLeft()) - collX);
 		}
 	// this check must be done down here due to how thin the rectangle is
-	}else if(collX >= (int)(GetCenterX() - collisionOffset) && collX <= (int)(GetCenterX() + collisionOffset)){
+	}else if(collX >= (int)(GetCenterX() - xCollOffset) && collX <= (int)(GetCenterX() + xCollOffset)){
 		// collision is underfoot
 	}
 
 	// character has landed
-	if(inAir && yVelo <= 0 && collY <= (int)(GetBottom()) && collY > (int)(GetBottom() - collisionOffset)){
+	if(inAir && yVelo <= 0 && collY <= (int)(GetBottom()) && collY > (int)(GetBottom() - yCollOffset)){
 		inAir = false;
+		jumping = false;
 
 		// spawn particles
-		ParticleSystem *landParticles = new ParticleSystem(205, 65, 110, 30, 25, 0, 0.5, 0.2, coll->GetXPos(), coll->GetYPos(), -50, 50, 100, 50, 5, 2, true, 20, 0.5);
+		ParticleSystem *landParticles = new ParticleSystem(205, 65, 110, 30, 25, 0, 0.5, 0.2, coll->GetXPos(), coll->GetYPos(), -50, 50, 100, 50, 10, 4, true, 20, 0.4);
 		game->AddParticleSystem(landParticles);
 
 		// play sound
 		AudioMaster::PlaySound("./Sounds/CharacterLanding.wav", 30);
 	}
 	// y velocity
-	if(collY >= (int)(GetCenterY() - collisionOffset) && collY <= (int)(GetCenterY() + collisionOffset)){
+	if(collY >= (int)(GetCenterY() - yCollOffset) && collY <= (int)(GetCenterY() + yCollOffset)){
 		// collision is to the side
-	}else if(yVelo > 0 && collY >= (int)(GetTop()) && collY <= (int)(GetTop() + collisionOffset)){
+	}else if(yVelo >= 0 && collY >= (int)(GetTop()) && collY <= (int)(GetTop() + yCollOffset)){
 		yVelo = 0;
 		yPos -= ((int)(GetTop()) - collY);
 
 		// hitting head stops player's jump
 		if(jumping){
 			jumping = false;
+			chargeReset = false;
 		}
-	}else if(yVelo < 0 && collY <= (int)(GetBottom()) && collY >= (int)(GetBottom() - collisionOffset)){
+
+		// spawn particles
+		ParticleSystem *headParticles = new ParticleSystem(205, 65, 110, 30, 25, 0, 0.5, 0.2, coll->GetXPos(), coll->GetYPos(), -50, 50, 100, 50, 10, 4, true, 20, 0.4);
+		game->AddParticleSystem(headParticles);
+	}else if(yVelo <= 0 && collY <= (int)(GetBottom()) && collY >= (int)(GetBottom() - yCollOffset)){
 		yVelo = 0;
 		yPos -= ((int)(GetBottom()) - collY);
 	}
@@ -480,8 +505,6 @@ void Character::Update(float deltaTime){
 			charging = false;
 			if(!chargeReset){
 				chargeReset = true;
-			}else{
-				chargeReset = false;
 			}
 		}
 
@@ -617,9 +640,17 @@ void Character::Update(float deltaTime){
 	}else{
 		// accelerate in opposite direction to slow down
 		if(xVelo > 0){
-			ApplyAcceleration(-1*moveAccel, 0 , deltaTime);
+			if(uncontrollable){
+				ApplyAcceleration(-1*uncontrollableAccel, 0, deltaTime);
+			}else{
+				ApplyAcceleration(-1*moveAccel, 0 , deltaTime);
+			}
 		}else if(xVelo < 0){
-			ApplyAcceleration(moveAccel, 0, deltaTime);
+			if(uncontrollable){
+				ApplyAcceleration(uncontrollableAccel, 0, deltaTime);
+			}else{
+				ApplyAcceleration(moveAccel, 0, deltaTime);
+			}
 		}else{
 			// not moving
 		}
@@ -705,7 +736,7 @@ void Character::Jump(float deltaTime){
 	AudioMaster::PlaySound("./Sounds/CharacterJump.wav", 60);
 
 	// spawn particles
-	ParticleSystem *jumpParticles = new ParticleSystem(255, 190, 255, 190, 255, 190, 0.5, 0.2, GetCenterX(), GetBottom(), -50, 50, 0, -25, 5, 2, true, 20, 0.5);
+	ParticleSystem *jumpParticles = new ParticleSystem(255, 190, 255, 190, 255, 190, 0.5, 0.2, GetCenterX(), GetBottom(), 25, -25, 80, -20, 10, 4, true, 20, 0);
 	game->AddParticleSystem(jumpParticles);
 }
 

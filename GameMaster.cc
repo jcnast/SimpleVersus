@@ -264,7 +264,11 @@ SDL_Renderer *GameMaster::GetRenderer(){
 
 // the time between updates
 float GameMaster::DeltaTime(){
-	return ((currentUpdate - lastUpdate)/1000);
+	float deltaTime = ((currentUpdate - lastUpdate)/1000);
+	if(deltaTime >= 0.02){
+		return 0.015;
+	}
+	return deltaTime;
 }
 
 // is the game over
@@ -412,21 +416,23 @@ void GameMaster::PhysicsUpdate(){
 			}
 
 			// or with a bullet
-			for(std::vector<Bullet *>::iterator b = bullets.begin(); b != bullets.end(); ++b) {
-				// do not check bullets that the character fired
-				if((*b)->GetCharacter() != *c){
-			    collision = (*c)->CollisionCheck(*b);
-			    if(collision != NULL && !((*c)->Dead())){
-			    	(*c)->OnCollision(*b, collision);
-			    	(*b)->OnCollision(*c, collision);
-			    	delete collision;
-			    }
-			  }
+			if(!inMenu){
+				for(std::vector<Bullet *>::iterator b = bullets.begin(); b != bullets.end(); ++b) {
+					// do not check bullets that the character fired
+					if((*b)->GetCharacter() != *c){
+				    collision = (*c)->CollisionCheck(*b);
+				    if(collision != NULL && !((*c)->Dead())){
+				    	(*c)->OnCollision(*b, collision);
+				    	(*b)->OnCollision(*c, collision);
+				    	delete collision;
+				    }
+				  }
+				}
 			}
 
 			// or with another character (starting with the first character that has not been checked)
 			for(std::vector<Character *>::iterator oc = c+1; oc != characters.end(); ++oc){
-				if(!(*oc)->Dead() && !(*c)->Dead()){
+				if((*oc)->IsActive() && !(*oc)->Dead() && !(*c)->Dead()){
 					collision = (*c)->CollisionCheck(*oc);
 					if(collision != NULL){
 						(*c)->OnCollision(*oc, collision);
@@ -464,7 +470,9 @@ void GameMaster::PhysicsUpdate(){
 void GameMaster::Update(){
 	// update players
 	for(std::vector<Character *>::iterator c = characters.begin(); c != characters.end(); ++c) {
-    (*c)->Update(DeltaTime());
+		if((*c)->IsActive()){
+    	(*c)->Update(DeltaTime());
+    }
 	}
 }
 
@@ -557,13 +565,13 @@ void GameMaster::SpawnGround(){
 	AddGround(bottomGround);
 
 	// make all platforms dark to start
-	Ground *leftPlatform = new Ground(100, screenHeight - screenHeight/4 - 50, true, 300);
+	Ground *leftPlatform = new Ground(100, screenHeight - screenHeight/4 - 30, true, 300);
 	leftPlatform->Darken(true);
 	AddGround(leftPlatform);
-	Ground *rightPlatform = new Ground(screenWidth - 400, screenHeight - screenHeight/4 - 50, true, 300);
+	Ground *rightPlatform = new Ground(screenWidth - 400, screenHeight - screenHeight/4 - 30, true, 300);
 	rightPlatform->Darken(true);
 	AddGround(rightPlatform);
-	Ground *middlePlatform = new Ground(screenWidth/2 - 150, screenHeight/2 - 50, true, 300);
+	Ground *middlePlatform = new Ground(screenWidth/2 - 150, screenHeight/2 - 35, true, 300);
 	middlePlatform->Darken(true);
 	AddGround(middlePlatform);
 	Ground *topLeftPlatform = new Ground(0, screenHeight/4, true, 300);

@@ -53,6 +53,7 @@ class Character: public Rectangle{
 	bool uncontrollable; // if the character listens to controller input
 	float uncontrollableStart; // when the uncontrollable-ness started
 	float uncontrollableLength; // how long character is uncontrollable for
+	float uncontrollableAccel;
 
 	bool jumping; // character is still applying jump
 	float jumpMaxSpeed;

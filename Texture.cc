@@ -167,6 +167,11 @@ void Texture::Darken(bool dark){
 // set the renderer
 bool Texture::SetRenderer(SDL_Renderer *newRenderer){
 	renderer = newRenderer;
+	if(renderer != NULL){
+		return true;
+	}else{
+		return false;
+	}
 }
 
 // the flash animation

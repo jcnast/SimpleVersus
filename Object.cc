@@ -5,8 +5,8 @@
 // include necessary libraries
 #include <cmath>
 
-const float Object::gravity = -500;
-const float Object::maxSpeed = 400;
+const float Object::gravity = -1000;
+const float Object::maxSpeed = 700;
 
 // create object by setting position, gravity and damping coefficient
 Object::Object(float xPos, float yPos, float xVelo, float yVelo, float mass, float dampCo):\
