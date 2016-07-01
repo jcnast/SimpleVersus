@@ -12,8 +12,8 @@ DEBUG = -g
 FLAGS = -lSDL2 -lSDL2_image $(DEBUG)
 OBJ_NAME = SimpleVersus
 
-# windows: FLAGS = -I$(WIN_SDL_INCLUDE) -D_REENTRANT -L$(WIN_SDL_LIB) -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -mwindows
-# windows: SimpleVersus.exe
+windows: FLAGS = -I$(WIN_SDL_INCLUDE) -D_REENTRANT -L$(WIN_SDL_LIB) -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -mwindows -static-libgcc -static-libstdc++
+windows: SimpleVersus.exe
 
 SimpleVersus.exe: $(OBJS)
 	$(CC) -o $(OBJ_NAME) $(OBJS) $(FLAGS)

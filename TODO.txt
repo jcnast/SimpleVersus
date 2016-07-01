@@ -1,12 +1,18 @@
 Screen Resizing:
 	pause game, resize screen and adjust game objects accordingly
 
+
+
 Power Ups: have boxes that, when walked through, provide the player with power ups
+
 
 	Laser shot: spawn expanding rectangle at given point (also pulses wider halfway through lifetime)
 
+
 	Heal: restore health
 
+
 	Invulnerability: player invulnerable for 30 sec
+
 
 	Fire in both directions: do as described

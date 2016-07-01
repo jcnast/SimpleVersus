@@ -252,10 +252,6 @@ void Character::OnCollision(Character *hitCharacter, Collision *coll){
 				jumping = false;
 			}
 		}
-
-		// particle effects
-		ParticleSystem *hitParticles = new ParticleSystem(255, 125, 0, 0, 0, 0, 1, 0.5, coll->GetXPos(), coll->GetYPos(), 35, -35, 35, -35, 8, 3, true, 20, 0);
-		game->AddParticleSystem(hitParticles);
 	}else if(collY <= (int)(GetBottom()) && collY >= (int)(GetBottom() - yCollOffset)){
 		// take care of hitting player with feet
 		SetVelocity(xVelo, 400);
@@ -265,6 +261,10 @@ void Character::OnCollision(Character *hitCharacter, Collision *coll){
 
 		// stepping on someone's head does damage
 		hitCharacter->ApplyDamage(bulletDamage*2, this);
+		
+		// particle effects
+		ParticleSystem *hitParticles = new ParticleSystem(255, 125, 0, 0, 0, 0, 1, 0.5, coll->GetXPos(), coll->GetYPos(), 35, -35, 35, -35, 8, 3, true, 20, 0);
+		game->AddParticleSystem(hitParticles);
 	}
 
 	if(lrColl || tbColl){
