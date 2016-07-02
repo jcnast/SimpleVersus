@@ -673,8 +673,12 @@ void Character::Render(){
   // character is standing by default
   int clip = 0;
   lastSpriteChange++;
+
+  // character has just been hit
+  if(immune || uncontrollable){
+  	clip = 3;
   // character in the air
-  if(inAir){
+  }else if(inAir){
   	// character is on left wall
   	if(onLeftWall && yVelo <= 0){
   		clip = 5;
@@ -686,9 +690,6 @@ void Character::Render(){
   		clip = 4;
   	}
   // character has just been hit
-  }else if(immune || uncontrollable){
-  	clip = 3;
-  // character is walking
   }else if(xVelo*xVelo > 0){
   	if(lastSpriteChange > walkFrameRate){
   		if(curFrame == 1){
